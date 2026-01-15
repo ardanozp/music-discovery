@@ -1,0 +1,23 @@
+# Node / Angular
+node_modules/
+dist/
+.angular/
+npm-debug.log*
+yarn-error.log*
+
+# .NET
+bin/
+obj/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+.cursor/
+
+# Env
+.env
+

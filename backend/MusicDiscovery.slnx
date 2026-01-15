@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/DataPipeLine/">
+    <Project Path="DataPipeLine/DataPipeline.csproj" />
+  </Folder>
+</Solution>
