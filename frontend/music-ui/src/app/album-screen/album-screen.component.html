@@ -1,0 +1,29 @@
+<div class="album-container">
+
+    <!-- EKRAN 1: Soru -->
+    <div class="mood-section" *ngIf="!selectedMood">
+        <h3>How are you feeling today?</h3>
+        <div class="mood-buttons">
+            <button (click)="setMood('Energetic')">Energetic</button>
+            <button (click)="setMood('Chill')">Chill</button>
+        </div>
+    </div>
+
+    <!-- EKRAN 2: Albüm -->
+    <div class="album-card" *ngIf="selectedMood && currentAlbum">
+        <img [src]="currentAlbum.coverUrl" [alt]="currentAlbum.title" class="album-cover">
+        <h1 class="album-title">{{ currentAlbum.title }}</h1>
+        <h2 class="album-artist">{{ currentAlbum.artist }}</h2>
+        <p class="album-year">Released: {{ currentAlbum.year }}</p>
+
+        <div class="controls">
+            <button (click)="nextAlbum()" class="next-button">Next Album</button>
+        </div>
+
+        <div class="restart-section">
+            <button (click)="reset()" class="restart-button">Restart</button>
+        </div>
+
+        <a [href]="currentAlbum.wikipediaUrl" target="_blank" class="wiki-link">View on Wikipedia</a>
+    </div>
+</div>

@@ -1,0 +1,133 @@
+.album-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f0f0;
+    font-family: sans-serif;
+}
+
+.album-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+}
+
+.album-cover {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.album-title {
+    margin: 0.5rem 0;
+    font-size: 1.5rem;
+    color: #333;
+}
+
+.album-artist {
+    margin: 0.25rem 0 1rem;
+    font-size: 1.1rem;
+    color: #666;
+    font-weight: normal;
+}
+
+.album-year {
+    color: #888;
+    margin-bottom: 1.5rem;
+}
+
+.wiki-link {
+    display: inline-block;
+    text-decoration: none;
+    color: #007bff;
+    border: 1px solid #007bff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.wiki-link:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.controls {
+    margin-bottom: 1.5rem;
+}
+
+.next-button {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.6rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.next-button:hover {
+    background-color: #555;
+}
+
+.next-button:active {
+    transform: translateY(1px);
+}
+
+.mood-section {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.mood-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.mood-buttons button {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ccc;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.mood-buttons button:hover {
+    background: #f0f0f0;
+}
+
+.mood-buttons button.active {
+    background: #333;
+    color: white;
+    border-color: #333;
+}
+
+.restart-section {
+    margin: 1.5rem 0;
+}
+
+.restart-button {
+    background-color: transparent;
+    color: #666;
+    border: 1px solid #ccc;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.restart-button:hover {
+    background-color: #f9f9f9;
+    color: #333;
+    border-color: #999;
+}
