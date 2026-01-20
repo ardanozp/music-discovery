@@ -1,23 +1,40 @@
+# =========================
 # Node / Angular
+# =========================
 node_modules/
 dist/
 .angular/
 npm-debug.log*
 yarn-error.log*
 
+# =========================
 # .NET
+# =========================
 bin/
 obj/
 
+# =========================
+# Local datasets / seeds
+# (temporary, will be replaced by pipeline)
+# =========================
+backend/**/Data/*.json
+backend/**/data/*.json
+backend/DataPipeline/data/
+
+# =========================
+# Frontend mock data
+# =========================
+frontend/music-ui/src/assets/mock/
+
+# =========================
 # OS
+# =========================
 .DS_Store
 
+# =========================
 # IDE
+# =========================
 .vscode/
+.vs/
 .idea/
-
-.cursor/
-
-# Env
-.env
 
