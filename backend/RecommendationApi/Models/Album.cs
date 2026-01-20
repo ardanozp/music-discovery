@@ -8,5 +8,8 @@ public class Album
     public int Year { get; set; }
     public string CoverUrl { get; set; } = string.Empty;
     public string WikipediaUrl { get; set; } = string.Empty;
-    public string Mood { get; set; } = string.Empty;
+    public EnergyLevel Energy { get; set; }
+    public EmotionLevel Emotion { get; set; }
+    public FamiliarityLevel Familiarity { get; set; }
+    public TimeFeeling Time { get; set; }
 }

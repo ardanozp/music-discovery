@@ -1,1 +1,19 @@
-/* You can add global styles to this file, and also import other style files */
+/* Global Styles - Remove default margins and set black background */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000000;
+    overflow-x: hidden;
+}
+
+html {
+    margin: 0;
+    padding: 0;
+    background-color: #000000;
+}

@@ -1,133 +1,448 @@
+/* ========================================
+   MINIMAL MUSIC DISCOVERY UI - PIXEL DARK MODE
+   ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+/* Global Container */
 .album-container {
+    min-height: 100vh;
+    max-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    background-color: #f0f0f0;
-    font-family: sans-serif;
-}
-
-.album-card {
-    background: white;
+    background-color: #000000;
+    color: #ffffff;
+    font-family: 'VT323', monospace;
     padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    max-width: 400px;
-    width: 100%;
+    box-sizing: border-box;
+    text-transform: lowercase;
+    overflow: hidden;
 }
 
-.album-cover {
-    width: 100%;
-    max-width: 300px;
-    height: auto;
-    border-radius: 4px;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.album-title {
-    margin: 0.5rem 0;
-    font-size: 1.5rem;
-    color: #333;
-}
-
-.album-artist {
-    margin: 0.25rem 0 1rem;
-    font-size: 1.1rem;
-    color: #666;
-    font-weight: normal;
-}
-
-.album-year {
-    color: #888;
-    margin-bottom: 1.5rem;
-}
-
-.wiki-link {
-    display: inline-block;
-    text-decoration: none;
-    color: #007bff;
-    border: 1px solid #007bff;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-
-.wiki-link:hover {
-    background-color: #007bff;
-    color: white;
-}
-
-.controls {
-    margin-bottom: 1.5rem;
-}
-
-.next-button {
-    background-color: #333;
-    color: white;
-    border: none;
-    padding: 0.8rem 1.6rem;
-    font-size: 1rem;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.next-button:hover {
-    background-color: #555;
-}
-
-.next-button:active {
-    transform: translateY(1px);
-}
+/* ========================================
+   QUESTION SCREENS
+   ======================================== */
 
 .mood-section {
     text-align: center;
-    margin-bottom: 2rem;
+    max-width: 600px;
+    width: 100%;
+}
+
+.mood-section h3 {
+    font-size: 2.4rem;
+    font-weight: 400;
+    color: #ffffff;
+    margin: 0 0 2.4rem 0;
+    line-height: 1.2;
+    display: inline-block;
+    overflow: hidden;
+    border-right: 3px solid #ffffff;
+    white-space: nowrap;
+    animation:
+        typing 1.5s steps(30, end) forwards,
+        blink-caret 0.5s step-end infinite 0s,
+        remove-caret 0s 0.8s forwards;
+}
+
+@keyframes typing {
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes blink-caret {
+
+    from,
+    to {
+        border-color: transparent;
+    }
+
+    50% {
+        border-color: #ffffff;
+    }
+}
+
+@keyframes remove-caret {
+    to {
+        border-right-color: transparent;
+    }
 }
 
 .mood-buttons {
     display: flex;
-    gap: 1rem;
-    justify-content: center;
+    flex-direction: column;
+    gap: 0.9rem;
+    align-items: center;
 }
 
 .mood-buttons button {
-    padding: 0.5rem 1rem;
-    border: 1px solid #ccc;
-    background: white;
-    border-radius: 20px;
+    background: #000000;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+    font-family: 'VT323', monospace;
+    font-size: 1.2rem;
+    padding: 0.6rem 1.8rem;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.1s steps(2);
+    border-radius: 0;
+    min-width: 144px;
+    text-transform: lowercase;
 }
 
 .mood-buttons button:hover {
-    background: #f0f0f0;
+    background-color: #ffffff;
+    color: #000000;
+    transform: translateY(-4px);
+    box-shadow: 0 4px 0 rgba(255, 255, 255, 0.5);
+    /* Hard shadow */
 }
 
-.mood-buttons button.active {
-    background: #333;
-    color: white;
-    border-color: #333;
+.mood-buttons button:active {
+    transform: translateY(0);
+    box-shadow: none;
 }
 
-.restart-section {
-    margin: 1.5rem 0;
+/* ========================================
+   ALBUM SCREEN
+   ======================================== */
+
+.album-card {
+    width: 100%;
+    max-width: 600px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem 8rem;
+    box-sizing: border-box;
+    position: relative;
+    background-color: #000000;
+    animation: albumEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    text-align: center;
 }
 
-.restart-button {
-    background-color: transparent;
-    color: #666;
-    border: 1px solid #ccc;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    border-radius: 4px;
+@keyframes albumEntrance {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Album Cover */
+.album-cover {
+    width: 100%;
+    max-width: 350px;
+    height: auto;
+    aspect-ratio: 1;
+    object-fit: cover;
+    border: 3px solid #ffffff;
+    margin-bottom: 2rem;
+    transition: transform 0.3s ease;
+    animation: slideInLeft 0.6s ease-out;
+}
+
+.album-cover:hover {
+    transform: scale(1.02);
+}
+
+/* Album Title */
+.album-title {
+    font-size: 2.5rem;
+    font-weight: 400;
+    color: #ffffff;
+    margin: 0 0 0.5rem 0;
+    text-align: center;
+    line-height: 1.1;
+    max-width: 500px;
+    text-transform: lowercase;
+    animation: slideInRight 0.5s ease-out 0.2s both;
+}
+
+/* Album Artist */
+.album-artist {
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: #999999;
+    margin: 0 0 0.75rem 0;
+    text-align: center;
+    text-transform: lowercase;
+    animation: fadeInUp 0.4s ease-out 0.3s both;
+}
+
+/* Album Year */
+.album-year {
+    font-size: 1rem;
+    color: #666666;
+    margin: 0 0 2rem 0;
+    text-align: center;
+    letter-spacing: 0.1em;
+    animation: fadeInUp 0.4s ease-out 0.4s both;
+}
+
+/* Next Button - Bottom center, prominent */
+.next-button {
+    position: fixed;
+    bottom: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: transparent;
+    border: 2px solid #ffffff;
+    color: #ffffff;
+    font-family: 'VT323', monospace;
+    font-size: 2rem;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
     cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    opacity: 0;
+    animation: delayedFadeIn 0.5s ease-out 2s forwards;
+}
+
+.next-arrow {
+    font-size: 2.5rem;
+    transition: transform 0.3s ease;
+}
+
+.next-button:hover {
+    background-color: #ffffff;
+    color: #000000;
+    transform: translateX(-50%) scale(1.1);
+}
+
+.next-button:hover .next-arrow {
+    transform: translateX(5px);
+}
+
+/* Restart Button - Top right corner */
+.restart-button {
+    position: fixed;
+    top: 1.5rem;
+    right: 64.5rem;
+    z-index: 20;
+    background: transparent;
+    border: none;
+    color: #444444;
+    font-family: 'VT323', monospace;
+    font-size: 1.125rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    text-transform: lowercase;
+    opacity: 0;
+    animation: delayedFadeIn 0.5s ease-out 2s forwards;
 }
 
 .restart-button:hover {
-    background-color: #f9f9f9;
-    color: #333;
-    border-color: #999;
+    color: #ffffff;
+}
+
+/* Wikipedia Link - Fixed position */
+.wiki-link {
+    position: fixed;
+    bottom: 9rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-block;
+    text-decoration: none;
+    color: #666666;
+    font-size: 1.125rem;
+    padding: 0.5rem 0;
+    border: none;
+    transition: color 0.3s ease;
+    text-transform: lowercase;
+    z-index: 15;
+    opacity: 0;
+    animation: delayedFadeIn 0.5s ease-out 2s forwards;
+}
+
+.wiki-link:hover {
+    color: #ffffff;
+}
+
+/* ========================================
+   LOADING SCREEN
+   ======================================== */
+
+.loading-section {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.loading-text {
+    font-family: 'VT323', monospace;
+    font-size: 1.8rem;
+    color: #ffffff;
+    margin: 0;
+    text-transform: lowercase;
+    animation: textPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes textPulse {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+
+/* Restart Button */
+.restart-section {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 20;
+    opacity: 0;
+    animation: delayedFadeIn 0.5s ease-out 2s forwards;
+}
+
+@keyframes delayedFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.restart-button {
+    background: transparent;
+    border: none;
+    color: #444444;
+    font-family: 'VT323', monospace;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    text-transform: lowercase;
+}
+
+.restart-button:hover {
+    color: #ffffff;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Album Cover Animation - Slide from left */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-100px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Album Title Animation - Slide from right */
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Album Details Animation - Fade up */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+    .mood-section h3 {
+        font-size: 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .mood-buttons button {
+        font-size: 1.5rem;
+        padding: 1rem 2rem;
+        min-width: 200px;
+    }
+
+    .album-title {
+        font-size: 3rem;
+    }
+
+    .album-artist {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .mood-section h3 {
+        font-size: 2.5rem;
+    }
+
+    .album-title {
+        font-size: 2.5rem;
+    }
+
+    .album-card {
+        padding: 2rem 1rem 4rem;
+    }
 }

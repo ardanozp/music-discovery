@@ -1,29 +1,65 @@
 <div class="album-container">
 
-    <!-- EKRAN 1: Soru -->
-    <div class="mood-section" *ngIf="!selectedMood">
-        <h3>How are you feeling today?</h3>
+    <!-- EKRAN 1: Energy Sorusu -->
+    <div class="mood-section" *ngIf="currentStep === 'energy'">
+        <h3>music should feel…</h3>
         <div class="mood-buttons">
-            <button (click)="setMood('Energetic')">Energetic</button>
-            <button (click)="setMood('Chill')">Chill</button>
+            <button (click)="setEnergy('Low')">low</button>
+            <button (click)="setEnergy('Mid')">mid</button>
+            <button (click)="setEnergy('High')">high</button>
         </div>
     </div>
 
-    <!-- EKRAN 2: Albüm -->
-    <div class="album-card" *ngIf="selectedMood && currentAlbum">
-        <img [src]="currentAlbum.coverUrl" [alt]="currentAlbum.title" class="album-cover">
-        <h1 class="album-title">{{ currentAlbum.title }}</h1>
-        <h2 class="album-artist">{{ currentAlbum.artist }}</h2>
-        <p class="album-year">Released: {{ currentAlbum.year }}</p>
+    <!-- EKRAN 2: Emotion Sorusu -->
+    <div class="mood-section" *ngIf="currentStep === 'emotion'">
+        <h3>how should it feel?</h3>
+        <div class="mood-buttons">
+            <button (click)="setEmotion('Light')">light</button>
+            <button (click)="setEmotion('Deep')">deep</button>
+        </div>
+    </div>
 
-        <div class="controls">
-            <button (click)="nextAlbum()" class="next-button">Next Album</button>
+    <!-- EKRAN 3: Familiarity Sorusu -->
+    <div class="mood-section" *ngIf="currentStep === 'familiarity'">
+        <h3>what kind of music?</h3>
+        <div class="mood-buttons">
+            <button (click)="setFamiliarity('Familiar')">familiar</button>
+            <button (click)="setFamiliarity('Exploratory')">exploratory</button>
+        </div>
+    </div>
+
+    <!-- EKRAN 4: Time Sorusu -->
+    <div class="mood-section" *ngIf="currentStep === 'time'">
+        <h3>when does it belong?</h3>
+        <div class="mood-buttons">
+            <button (click)="setTime('Past')">past</button>
+            <button (click)="setTime('Timeless')">timeless</button>
+            <button (click)="setTime('Now')">now</button>
+        </div>
+    </div>
+
+    <!-- EKRAN 5: Loading -->
+    <div class="loading-section" *ngIf="currentStep === 'loading'">
+        <div class="loading-content">
+            <p class="loading-text">finding your sound...</p>
+        </div>
+    </div>
+
+    <!-- EKRAN 6: Albüm -->
+    <div class="album-card" *ngIf="currentStep === 'album' && currentAlbum">
+        <div class="album-content" [@albumTransition]="currentAlbumIndex">
+            <img [src]="currentAlbum.coverUrl" [alt]="currentAlbum.title" class="album-cover">
+            <h1 class="album-title">{{ currentAlbum.title }}</h1>
+            <h2 class="album-artist">{{ currentAlbum.artist }}</h2>
+            <p class="album-year">released {{ currentAlbum.year }}</p>
         </div>
 
-        <div class="restart-section">
-            <button (click)="reset()" class="restart-button">Restart</button>
-        </div>
+        <a [href]="currentAlbum.wikipediaUrl" target="_blank" class="wiki-link">view on wikipedia</a>
 
-        <a [href]="currentAlbum.wikipediaUrl" target="_blank" class="wiki-link">View on Wikipedia</a>
+        <button (click)="nextAlbum()" class="next-button">
+            <span class="next-arrow">→</span>
+        </button>
+
+        <button (click)="reset()" class="restart-button">restart</button>
     </div>
 </div>

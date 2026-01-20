@@ -11,7 +11,17 @@ export class RecommendationService {
 
     constructor(private http: HttpClient) { }
 
-    getRecommendedAlbums(mood: string): Observable<{ albums: Album[] }> {
-        return this.http.post<{ albums: Album[] }>(this.apiUrl, { mood });
+    getRecommendedAlbums(
+        energy: string,
+        emotion: string,
+        familiarity: string,
+        time: string
+    ): Observable<{ albums: Album[] }> {
+        return this.http.post<{ albums: Album[] }>(this.apiUrl, {
+            energy,
+            emotion,
+            familiarity,
+            time
+        });
     }
 }
