@@ -12,10 +12,10 @@ export class RecommendationService {
     constructor(private http: HttpClient) { }
 
     getRecommendedAlbums(
-        energy: string,
-        emotion: string,
-        familiarity: string,
-        time: string
+        energy: number,
+        emotion: number,
+        familiarity: number,
+        time: number
     ): Observable<{ albums: Album[] }> {
         return this.http.post<{ albums: Album[] }>(this.apiUrl, {
             energy,

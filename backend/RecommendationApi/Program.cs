@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using RecommendationApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,9 @@ builder.Services.AddControllers()
             new JsonStringEnumConverter()
         );
     });
+
+// Register application services
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

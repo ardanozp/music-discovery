@@ -1,60 +1,70 @@
 using Microsoft.AspNetCore.Mvc;
 using RecommendationApi.Models;
-using RecommendationApi.Data;
+using RecommendationApi.Services;
 
 namespace RecommendationApi.Controllers;
 
+/// <summary>
+/// Controller for album recommendation endpoints.
+/// 
+/// RESPONSIBILITIES:
+/// - Validate HTTP request
+/// - Call service layer
+/// - Map to HTTP response
+/// 
+/// CONSTRAINTS:
+/// - NO business logic
+/// - NO direct pipeline access
+/// - NO scoring or ranking
+/// 
+/// This is a thin controller that delegates all work to the service layer.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class RecommendationsController : ControllerBase
 {
+    private readonly IRecommendationService _recommendationService;
+    
+    /// <summary>
+    /// Initializes the controller with the recommendation service.
+    /// </summary>
+    public RecommendationsController(IRecommendationService recommendationService)
+    {
+        _recommendationService = recommendationService;
+    }
 
+    /// <summary>
+    /// Gets album recommendations based on user preferences.
+    /// </summary>
+    /// <param name="request">User preference scores (0.0 - 1.0 for each dimension)</param>
+    /// <returns>List of recommended albums sorted by relevance</returns>
     [HttpPost]
     public IActionResult GetRecommendations([FromBody] RecommendationRequest request)
     {
+        // Validate request
         if (request == null)
         {
             return BadRequest("Request is required.");
         }
-
-        // STEP 1: Hard filter - Energy and Emotion must match (eliminates albums)
-        var hardFiltered = AlbumData.Albums
-            .Where(a => a.Energy == request.Energy && a.Emotion == request.Emotion)
-            .ToList();
-
-        // STEP 2: Soft scoring - Familiarity and Time add points (never eliminate)
-        var scoredAlbums = hardFiltered.Select(album => new
+        
+        // Validate score ranges (0.0 - 1.0)
+        if (request.Energy < 0 || request.Energy > 1 ||
+            request.Emotion < 0 || request.Emotion > 1 ||
+            request.Familiarity < 0 || request.Familiarity > 1 ||
+            request.Time < 0 || request.Time > 1)
         {
-            Album = album,
-            Score = CalculateSoftScore(album, request)
-        }).ToList();
-
-        // STEP 3: Sort by score DESC, then randomize within same score groups
-        var recommendedAlbums = scoredAlbums
-            .OrderByDescending(x => x.Score)
-            .ThenBy(x => Guid.NewGuid()) // Random tie-breaking for equal scores
-            .Select(x => x.Album)
-            .ToList();
-
-        return Ok(new { albums = recommendedAlbums });
-    }
-
-    private int CalculateSoftScore(Album album, RecommendationRequest request)
-    {
-        int score = 0;
-
-        // Familiarity match: +2 points
-        if (request.Familiarity.HasValue && album.Familiarity == request.Familiarity.Value)
-        {
-            score += 2;
+            return BadRequest("All preference scores must be between 0.0 and 1.0.");
         }
-
-        // Time match: +1 point
-        if (request.Time.HasValue && album.Time == request.Time.Value)
+        
+        // Call service to get recommendations
+        var albums = _recommendationService.GetRecommendations(request);
+        
+        // Build response
+        var response = new RecommendationResponse
         {
-            score += 1;
-        }
-
-        return score;
+            Albums = albums
+        };
+        
+        return Ok(response);
     }
 }

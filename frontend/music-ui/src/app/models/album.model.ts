@@ -5,4 +5,8 @@ export interface Album {
     coverUrl: string;
     wikipediaUrl: string;
     tag: string;
+    energyScore?: number;
+    emotionScore?: number;
+    familiarityScore?: number;
+    timeScore?: number;
 }
