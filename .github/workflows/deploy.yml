@@ -24,7 +24,7 @@ jobs:
 
       - name: Build Angular Project
         working-directory: frontend/music-ui
-        run: npm run build --configuration production
+        run: npm run build
 
       - name: Copy Frontend files to Server
         uses: appleboy/scp-action@v0.1.7
