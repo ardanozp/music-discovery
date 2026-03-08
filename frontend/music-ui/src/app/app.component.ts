@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { AlbumScreenComponent } from './album-screen/album-screen.component';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [AlbumScreenComponent],
-  template: `<app-album-screen />`
+  imports: [RouterOutlet],
+  template: `<router-outlet />`
 })
 export class AppComponent { }

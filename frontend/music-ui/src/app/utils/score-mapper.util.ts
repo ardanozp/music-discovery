@@ -16,10 +16,6 @@ const SCORE_RANGES: Record<string, Record<string, [number, number]>> = {
         'Mid': [0.40, 0.60],
         'High': [0.70, 0.90]
     },
-    emotion: {
-        'Light': [0.30, 0.50],
-        'Deep': [0.60, 0.80]
-    },
     familiarity: {
         'Familiar': [0.60, 0.80],
         'Exploratory': [0.20, 0.40]
@@ -34,15 +30,14 @@ const SCORE_RANGES: Record<string, Record<string, [number, number]>> = {
 /**
  * Generates a random score within the range defined for the given label.
  * 
- * @param parameterType - The parameter type ('energy', 'emotion', 'familiarity', 'time')
- * @param label - The user-selected label (e.g., 'Low', 'High', 'Light', etc.)
+ * @param parameterType - The parameter type ('energy', 'familiarity', 'time')
+ * @param label - The user-selected label (e.g., 'Low', 'High', 'Familiar', etc.)
  * @returns A random number within the defined range, rounded to 2 decimal places
  * 
  * @example
  * generateScore('energy', 'High') // Returns a value between 0.70 and 0.90
- * generateScore('emotion', 'Light') // Returns a value between 0.30 and 0.50
  */
-export function generateScore(parameterType: string, label: string): number {
+export function generateScore(parameterType: 'energy' | 'familiarity' | 'time', label: string): number {
     const ranges = SCORE_RANGES[parameterType];
 
     if (!ranges) {

@@ -3,62 +3,82 @@
     <!-- EKRAN 1: Energy Sorusu -->
     <div class="mood-section" *ngIf="currentStep === 'energy'">
         <h3>music should feel…</h3>
+        <p class="error-text" *ngIf="errorMessage" role="alert" aria-live="polite">{{ errorMessage }}</p>
         <div class="mood-buttons">
-            <button (click)="setEnergy('Low')">low</button>
-            <button (click)="setEnergy('Mid')">mid</button>
-            <button (click)="setEnergy('High')">high</button>
+            <button type="button" (click)="setEnergy('Low')">low</button>
+            <button type="button" (click)="setEnergy('Mid')">mid</button>
+            <button type="button" (click)="setEnergy('High')">high</button>
         </div>
     </div>
 
-    <!-- EKRAN 2: Emotion Sorusu -->
-    <div class="mood-section" *ngIf="currentStep === 'emotion'">
-        <h3>how should it feel?</h3>
-        <div class="mood-buttons">
-            <button (click)="setEmotion('Light')">light</button>
-            <button (click)="setEmotion('Deep')">deep</button>
-        </div>
-    </div>
-
-    <!-- EKRAN 3: Familiarity Sorusu -->
+    <!-- EKRAN 2: Familiarity Sorusu -->
     <div class="mood-section" *ngIf="currentStep === 'familiarity'">
         <h3>what kind of music?</h3>
         <div class="mood-buttons">
-            <button (click)="setFamiliarity('Familiar')">familiar</button>
-            <button (click)="setFamiliarity('Exploratory')">exploratory</button>
+            <button type="button" (click)="setFamiliarity('Familiar')">familiar</button>
+            <button type="button" (click)="setFamiliarity('Exploratory')">exploratory</button>
         </div>
     </div>
 
-    <!-- EKRAN 4: Time Sorusu -->
+    <!-- EKRAN 3: Time Sorusu -->
     <div class="mood-section" *ngIf="currentStep === 'time'">
         <h3>when does it belong?</h3>
         <div class="mood-buttons">
-            <button (click)="setTime('Past')">past</button>
-            <button (click)="setTime('Timeless')">timeless</button>
-            <button (click)="setTime('Now')">now</button>
+            <button type="button" (click)="setTime('Past')">past</button>
+            <button type="button" (click)="setTime('Timeless')">timeless</button>
+            <button type="button" (click)="setTime('Now')">now</button>
         </div>
     </div>
 
-    <!-- EKRAN 5: Loading -->
+    <!-- EKRAN 4: Loading -->
     <div class="loading-section" *ngIf="currentStep === 'loading'">
         <div class="loading-content">
             <p class="loading-text">finding your sound...</p>
         </div>
     </div>
 
-    <!-- EKRAN 6: Albüm -->
+    <!-- EKRAN 5: Albüm -->
     <div class="album-card" *ngIf="currentStep === 'album' && currentAlbum">
         <div class="album-content" [@albumTransition]="currentAlbumIndex">
             <img [src]="currentAlbum.coverUrl" [alt]="currentAlbum.title" class="album-cover">
-            <h1 class="album-title">{{ currentAlbum.title }}</h1>
+            <h1 class="album-title" [class.loading-pulse]="isLoadingNext">{{ currentAlbum.title }}</h1>
             <h2 class="album-artist">{{ currentAlbum.artist }}</h2>
             <p class="album-year">released {{ currentAlbum.year }}</p>
         </div>
 
-        <a [href]="currentAlbum.wikipediaUrl" target="_blank" class="wiki-link">view on wikipedia</a>
+        <a [href]="currentAlbum.wikipediaUrl" target="_blank" rel="noopener noreferrer" class="wiki-link">view on
+            wikipedia</a>
 
-        <button (click)="nextAlbum()" class="next-button">
-            <span class="next-arrow">→</span>
-        </button>
+        <div class="next-button-container">
+            <span class="album-indicator">{{ currentAlbumIndex + 1 }} / {{ albums.length }}</span>
+            <button type="button" (click)="nextAlbum()" class="next-button" aria-label="next album">
+                <span class="next-arrow">→</span>
+            </button>
+        </div>
 
-        <button (click)="reset()" class="restart-button">restart</button>
+        <div class="restart-wrapper"
+            [attr.data-tooltip]="restartsRemaining === 0 ? 'you have reached your discovery limit today, come back tomorrow' : null">
+            <button type="button" (click)="startOver()" class="restart-button" [disabled]="restartsRemaining === 0"
+                [class.disabled]="restartsRemaining === 0">
+                start over <span *ngIf="restartsRemaining > 0">({{ restartsRemaining }})</span>
+            </button>
+        </div>
     </div>
+
+    <!-- EKRAN 6: Günlük limit aşıldı -->
+    <div class="mood-section" *ngIf="currentStep === 'limited'">
+        <h3>come back tomorrow</h3>
+        <p class="limited-text">you've already discovered today's music.</p>
+    </div>
+
+    <div class="daily-locked-view" *ngIf="currentStep === 'dailyLocked'">
+        <h1 class="daily-locked-title">you've reached your discovery limit today, come back tomorrow</h1>
+        <div class="daily-locked-albums">
+            <div class="daily-locked-album" *ngFor="let album of dailyLockedAlbums; trackBy: trackByAlbumId">
+                <img [src]="album.coverUrl" [alt]="album.title">
+                <p>{{ album.title }}</p>
+            </div>
+        </div>
+    </div>
+
+</div>

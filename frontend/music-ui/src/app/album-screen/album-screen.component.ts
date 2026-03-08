@@ -1,9 +1,13 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { trigger, transition, style, animate } from '@angular/animations';
-import { RecommendationService } from '../services/recommendation.service';
+import { RecommendationService, SessionResponse } from '../services/recommendation.service';
 import { Album } from '../models/album.model';
 import { generateScore } from '../utils/score-mapper.util';
+
+type Step = 'energy' | 'familiarity' | 'time' | 'loading' | 'album' | 'limited' | 'dailyLocked';
+type ErrorState = 'network' | 'server' | 'unknown';
 
 @Component({
     selector: 'app-album-screen',
@@ -19,112 +23,210 @@ import { generateScore } from '../utils/score-mapper.util';
         ])
     ]
 })
-export class AlbumScreenComponent {
-    // State: Albüm listesi (Servisten gelecek)
-    albums: Album[] = [];
-
-    // State: Seçilen energy (UI label)
-    selectedEnergy = '';
-
-    // State: Seçilen emotion (UI label)
-    selectedEmotion = '';
-
-    // State: Seçilen familiarity (UI label)
-    selectedFamiliarity = '';
-
-    // State: Seçilen time (UI label)
-    selectedTime = '';
-
-    // State: Numeric scores (Backend'e gönderilecek)
+export class AlbumScreenComponent implements OnInit {
     energyScore = 0;
-    emotionScore = 0;
     familiarityScore = 0;
     timeScore = 0;
 
-    // State: Hangi adımdayız?
-    currentStep: 'energy' | 'emotion' | 'familiarity' | 'time' | 'loading' | 'album' = 'energy';
+    // ── Session state ─────────────────────────────────────────────────────────
+    sessionId: string | null = null;
+    restartsRemaining = 0;
 
-    // State: Sıra numarası
+    // ── UI state ──────────────────────────────────────────────────────────────
+    albums: Album[] = [];
+    seenAlbums: Album[] = [];
+    dailyLockedAlbums: Album[] = [];
+    currentStep: Step = 'energy';
     currentAlbumIndex = 0;
+    isLoadingNext = false;
+    errorMessage = '';
 
     constructor(private recommendationService: RecommendationService) { }
 
-    // Helper: Ekrandaki albümü seç
-    get currentAlbum() {
-        if (this.albums.length === 0) return null;
-        return this.albums[this.currentAlbumIndex];
+    ngOnInit(): void {
+        const saved = this.getDailyLimitState();
+        if (saved?.locked && saved.albums?.length) {
+            this.dailyLockedAlbums = saved.albums;
+            this.currentStep = 'dailyLocked';
+        }
     }
 
-    // Action: Energy seç ve emotion sorusuna geç
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    get currentAlbum(): Album | null {
+        return this.albums.length ? this.albums[this.currentAlbumIndex] : null;
+    }
+
+    // ── Quiz actions ──────────────────────────────────────────────────────────
+
     setEnergy(energy: string) {
-        this.selectedEnergy = energy;
         this.energyScore = generateScore('energy', energy);
-        this.currentStep = 'emotion';
-    }
-
-    // Action: Emotion seç ve familiarity sorusuna geç
-    setEmotion(emotion: string) {
-        this.selectedEmotion = emotion;
-        this.emotionScore = generateScore('emotion', emotion);
         this.currentStep = 'familiarity';
     }
 
-    // Action: Familiarity seç ve time sorusuna geç
     setFamiliarity(familiarity: string) {
-        this.selectedFamiliarity = familiarity;
         this.familiarityScore = generateScore('familiarity', familiarity);
         this.currentStep = 'time';
     }
 
-    // Action: Time seç ve backend'den albümleri çek
     setTime(time: string) {
-        this.selectedTime = time;
         this.timeScore = generateScore('time', time);
+        this.currentStep = 'loading';
+        this.errorMessage = '';
         this.currentAlbumIndex = 0;
 
-        // Loading state'e geç
-        this.currentStep = 'loading';
-
-        // Minimum loading süresi için delay
-        const minLoadingTime = 3000; // 3 saniye
+        const minLoadingTime = 3000;
         const startTime = Date.now();
 
-        // Servis çağrısı (numeric scores gönderiliyor)
-        this.recommendationService.getRecommendedAlbums(
-            this.energyScore,
-            this.emotionScore,
-            this.familiarityScore,
-            this.timeScore
-        ).subscribe(response => {
-            const elapsedTime = Date.now() - startTime;
-            const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+        const call$ = this.sessionId
+            ? this.recommendationService.restart(this.sessionId)
+            : this.recommendationService.createSession(this.energyScore, this.familiarityScore, this.timeScore);
 
-            // Minimum süre dolmadan albüm ekranına geçme
-            setTimeout(() => {
-                this.albums = response.albums;
-                this.currentStep = 'album';
-            }, remainingTime);
+        call$.subscribe({
+            next: (res) => this.onSessionReceived(res, Date.now() - startTime, minLoadingTime),
+            error: (err: HttpErrorResponse) => {
+                if (err.status === 429) {
+                    this.currentStep = 'limited';
+                } else {
+                    this.errorMessage = this.buildErrorMessage(err);
+                    this.currentStep = 'energy';
+                }
+            }
         });
     }
 
-    // Action: Sonraki albüm
+    // ── Album actions ─────────────────────────────────────────────────────────
+
     nextAlbum() {
-        if (this.albums.length === 0) return;
-        this.currentAlbumIndex = (this.currentAlbumIndex + 1) % this.albums.length;
+        if (!this.albums.length || this.isLoadingNext) return;
+
+        this.isLoadingNext = true;
+        const nextIndex = (this.currentAlbumIndex + 1) % this.albums.length;
+        const nextAlbum = this.albums[nextIndex];
+
+        // Sonraki albümün kapağını preload et
+        const img = new Image();
+        img.onload = () => {
+            this.currentAlbumIndex = nextIndex;
+            this.isLoadingNext = false;
+        };
+        img.onerror = () => {
+            // Hata olsa da geçişi bloklama
+            this.currentAlbumIndex = nextIndex;
+            this.isLoadingNext = false;
+        };
+        img.src = nextAlbum.coverUrl;
     }
 
-    // Action: Restart (Başa sar)
-    reset() {
-        this.selectedEnergy = '';
-        this.selectedEmotion = '';
-        this.selectedFamiliarity = '';
-        this.selectedTime = '';
-        this.energyScore = 0;
-        this.emotionScore = 0;
-        this.familiarityScore = 0;
-        this.timeScore = 0;
-        this.currentStep = 'energy';
-        this.currentAlbumIndex = 0;
-        this.albums = [];
+
+
+    startOver() {
+        if (this.restartsRemaining > 0) {
+            this.restartsRemaining--;
+            this.energyScore = 0;
+            this.familiarityScore = 0;
+            this.timeScore = 0;
+            this.albums = [];
+            this.currentStep = 'energy';
+            this.currentAlbumIndex = 0;
+        }
+    }
+
+    // ── Private ───────────────────────────────────────────────────────────────
+
+    private onSessionReceived(res: SessionResponse, elapsed: number, minTime: number) {
+        if (!res.albums?.length) {
+            this.errorMessage = 'Uygun album bulunamadi. Lutfen tekrar dene.';
+            this.currentStep = 'energy';
+            return;
+        }
+
+        const remaining = Math.max(0, minTime - elapsed);
+
+        // 1. Resimleri preload et (maksimum bekleme ile)
+        const imagePromises = res.albums.map((album) => this.preloadImage(album.coverUrl));
+
+        // 2. Hem minimum süreyi hem de resimlerin yüklenmesini bekle
+        Promise.all([
+            Promise.all(imagePromises),
+            new Promise(resolve => setTimeout(resolve, remaining))
+        ]).then(() => {
+            this.sessionId = res.sessionId;
+            this.albums = res.albums;
+            this.captureSeenAlbums(res.albums);
+            this.restartsRemaining = res.restartsRemaining;
+            this.currentStep = 'album';
+
+            if (this.restartsRemaining === 0) {
+                this.saveDailyLimitState(this.seenAlbums.slice(0, 6));
+            }
+        });
+    }
+
+    private preloadImage(url: string, timeoutMs = 5000): Promise<void> {
+        return new Promise((resolve) => {
+            const img = new Image();
+            const timer = setTimeout(() => resolve(), timeoutMs);
+            const done = () => {
+                clearTimeout(timer);
+                resolve();
+            };
+
+            img.onload = done;
+            img.onerror = done;
+            img.src = url;
+        });
+    }
+
+    private buildErrorMessage(err: HttpErrorResponse): string {
+        const errorType: ErrorState =
+            err.status === 0 ? 'network' :
+                err.status >= 500 ? 'server' : 'unknown';
+
+        if (errorType === 'network') {
+            return 'Sunucuya ulasilamadi. Baglantini kontrol edip tekrar dene.';
+        }
+
+        if (errorType === 'server') {
+            return 'Serviste gecici bir sorun var. Biraz sonra tekrar dene.';
+        }
+
+        return 'Istek tamamlanamadi. Lutfen tekrar dene.';
+    }
+
+    private captureSeenAlbums(albums: Album[]): void {
+        for (const album of albums) {
+            if (!this.seenAlbums.some((x) => x.id === album.id)) {
+                this.seenAlbums.push(album);
+            }
+        }
+    }
+
+    private getDailyLimitState(): { locked: boolean; albums: Album[] } | null {
+        try {
+            const raw = localStorage.getItem(this.dailyLimitStorageKey());
+            if (!raw) return null;
+            return JSON.parse(raw) as { locked: boolean; albums: Album[] };
+        } catch {
+            return null;
+        }
+    }
+
+    private saveDailyLimitState(albums: Album[]): void {
+        const payload = JSON.stringify({ locked: true, albums });
+        localStorage.setItem(this.dailyLimitStorageKey(), payload);
+    }
+
+    private dailyLimitStorageKey(): string {
+        const anonId = this.recommendationService.getOrCreateAnonId();
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        return `music_daily_limit:${anonId}:${yyyy}-${mm}-${dd}`;
+    }
+
+    trackByAlbumId(_: number, album: Album): string {
+        return album.id;
     }
 }

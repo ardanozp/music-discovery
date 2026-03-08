@@ -1,0 +1,72 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-frontend:
+    name: Deploy Frontend (Angular)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Angular'ın kullandığı Node sürümü olarak 20 genellikle idealdir.
+
+      - name: Install Dependencies
+        working-directory: frontend/music-ui
+        run: npm ci
+
+      - name: Build Angular Project
+        working-directory: frontend/music-ui
+        run: npm run build --configuration production
+
+      - name: Copy Frontend files to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "frontend/music-ui/dist/music-ui/browser/*"
+          target: "/var/www/music-frontend/"
+          strip_components: 5
+
+  deploy-backend:
+    name: Deploy Backend (.NET 8 Web API)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish .NET Project
+        working-directory: backend/RecommendationApi
+        run: dotnet publish -c Release -o ./publish
+
+      - name: Copy Backend files to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          source: "backend/RecommendationApi/publish/*"
+          target: "/var/www/music-backend/"
+          strip_components: 3
+
+      - name: Restart Backend Service
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            sudo systemctl restart music-backend.service

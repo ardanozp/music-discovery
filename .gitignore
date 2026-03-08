@@ -17,10 +17,7 @@ obj/
 # Local datasets / seeds
 # (temporary, will be replaced by pipeline)
 # =========================
-backend/**/Data/*.json
-backend/**/data/*.json
-backend/DataPipeline/data/
-
+backend/DataPipeline/
 # =========================
 # Frontend mock data
 # =========================
@@ -38,3 +35,7 @@ frontend/music-ui/src/assets/mock/
 .vs/
 .idea/
 
+# =========================
+# Data Pipeline
+# =========================
+datapipeline/

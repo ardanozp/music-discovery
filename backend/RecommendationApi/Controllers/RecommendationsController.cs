@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using RecommendationApi.Models;
 using RecommendationApi.Services;
 
@@ -6,65 +7,53 @@ namespace RecommendationApi.Controllers;
 
 /// <summary>
 /// Controller for album recommendation endpoints.
-/// 
-/// RESPONSIBILITIES:
-/// - Validate HTTP request
-/// - Call service layer
-/// - Map to HTTP response
-/// 
-/// CONSTRAINTS:
-/// - NO business logic
-/// - NO direct pipeline access
-/// - NO scoring or ranking
-/// 
-/// This is a thin controller that delegates all work to the service layer.
+/// Validates HTTP input, delegates all logic to the service layer.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class RecommendationsController : ControllerBase
 {
     private readonly IRecommendationService _recommendationService;
-    
-    /// <summary>
-    /// Initializes the controller with the recommendation service.
-    /// </summary>
+
     public RecommendationsController(IRecommendationService recommendationService)
     {
         _recommendationService = recommendationService;
     }
 
     /// <summary>
-    /// Gets album recommendations based on user preferences.
+    /// Returns albums ranked by closeness to the given preference scores.
     /// </summary>
-    /// <param name="request">User preference scores (0.0 - 1.0 for each dimension)</param>
-    /// <returns>List of recommended albums sorted by relevance</returns>
+    /// <param name="request">Preference scores (0.0–1.0) for energy, emotion, familiarity, time.</param>
+    /// <param name="count">Number of results to return (default: 20, max: 100).</param>
     [HttpPost]
-    public IActionResult GetRecommendations([FromBody] RecommendationRequest request)
+    [EnableRateLimiting("SessionsWritePolicy")]
+    [RequestSizeLimit(8 * 1024)]
+    public IActionResult GetRecommendations(
+        [FromBody] RecommendationRequest request,
+        [FromQuery] int count = 20)
     {
-        // Validate request
         if (request == null)
         {
-            return BadRequest("Request is required.");
+            return BadRequest(new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Request body is required.",
+                Type = "https://httpstatuses.com/400"
+            });
         }
-        
-        // Validate score ranges (0.0 - 1.0)
-        if (request.Energy < 0 || request.Energy > 1 ||
-            request.Emotion < 0 || request.Emotion > 1 ||
-            request.Familiarity < 0 || request.Familiarity > 1 ||
-            request.Time < 0 || request.Time > 1)
+
+        if (!ModelState.IsValid ||
+            float.IsNaN(request.Energy) || float.IsInfinity(request.Energy) ||
+            float.IsNaN(request.Familiarity) || float.IsInfinity(request.Familiarity) ||
+            float.IsNaN(request.Time) || float.IsInfinity(request.Time))
         {
-            return BadRequest("All preference scores must be between 0.0 and 1.0.");
+            return ValidationProblem(ModelState);
         }
-        
-        // Call service to get recommendations
-        var albums = _recommendationService.GetRecommendations(request);
-        
-        // Build response
-        var response = new RecommendationResponse
-        {
-            Albums = albums
-        };
-        
-        return Ok(response);
+
+        count = Math.Clamp(count, 1, 100);
+
+        var albums = _recommendationService.GetRecommendations(request, count);
+
+        return Ok(new RecommendationResponse { Albums = albums });
     }
 }

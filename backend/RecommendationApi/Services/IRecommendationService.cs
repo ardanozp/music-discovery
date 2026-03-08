@@ -1,18 +1,14 @@
-using DataPipeline.Enriched;
 using RecommendationApi.Models;
 
 namespace RecommendationApi.Services;
 
 /// <summary>
-/// Interface for the recommendation service.
-/// Defines the contract for getting album recommendations based on user preferences.
+/// Contract for the recommendation service.
 /// </summary>
 public interface IRecommendationService
 {
     /// <summary>
-    /// Gets album recommendations based on user preferences.
+    /// Returns albums closest to the given preference scores, sorted by relevance ascending.
     /// </summary>
-    /// <param name="request">User preference scores</param>
-    /// <returns>List of recommended albums sorted by relevance</returns>
-    List<AlbumDto> GetRecommendations(RecommendationRequest request);
+    List<AlbumDto> GetRecommendations(RecommendationRequest request, int count = 20);
 }
