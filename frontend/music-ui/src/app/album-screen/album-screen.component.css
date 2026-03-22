@@ -253,27 +253,33 @@
     color: #ffffff;
 }
 
-/* Wikipedia Link - Fixed position */
-.wiki-link {
+/* Action Links Container (Spotify + Wikipedia) */
+.action-links {
     position: fixed;
     bottom: 9rem;
     left: 50%;
     transform: translateX(-50%);
-    display: inline-block;
+    display: flex;
+    gap: 2.5rem;
+    z-index: 15;
+}
+
+.wiki-link, .spotify-link {
     text-decoration: none;
     color: #666666;
     font-size: 1.125rem;
     padding: 0.5rem 0;
-    border: none;
     transition: color 0.3s ease;
     text-transform: lowercase;
-    z-index: 15;
-    opacity: 0;
-    animation: delayedFadeIn 0.5s ease-out 2s forwards;
+    white-space: nowrap;
 }
 
 .wiki-link:hover {
     color: #ffffff;
+}
+
+.spotify-link:hover {
+    color: #1db954;
 }
 
 /* ========================================

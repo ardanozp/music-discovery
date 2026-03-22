@@ -23,6 +23,9 @@ public class RecommendationService : IRecommendationService
     /// while still staying close to the user's actual preferences.
     private const double JitterFactor = 0.12;
 
+    /// Minimum year gap required between selected albums to ensure variety.
+    private const int MinYearGap = 1;
+
     private readonly AlbumDataService _dataService;
 
     public RecommendationService(AlbumDataService dataService)
@@ -46,11 +49,21 @@ public class RecommendationService : IRecommendationService
     {
         var poolSize = count * PoolFactor;
 
+        // Hard Boundaries for Time:
+        // "Past" sends a score ~0.30. "Now" sends a score ~0.80. "Timeless" sends ~0.50.
+        // We enforce the 2010 boundary strictly here.
+        bool isPast = request.Time <= 0.42f;
+        bool isNow  = request.Time >= 0.60f;
+
         // Step 1: Compute a stochastic effective distance for every album.
-        //   effectiveDistance = (1 - JitterFactor) * weightedDistance + JitterFactor * noise
-        //   This nudges the ordering slightly each call, producing session variety.
         var scored = _dataService.ScoredAlbums
             .Where(a => excludeMbids == null || !excludeMbids.Contains(a.AlbumMbid))
+            .Where(a => 
+            {
+                if (isPast && a.Year >= 2010) return false;
+                if (isNow && a.Year < 2010) return false;
+                return true;
+            })
             .Select(a =>
             {
                 var baseDistance = ScoringService.WeightedDistance(
@@ -63,28 +76,90 @@ public class RecommendationService : IRecommendationService
             })
             .OrderBy(x => x.Distance);
 
-        // Step 2: Build the candidate pool with artist diversity enforcement.
-        //   Walk the sorted list; accept at most MaxAlbumsPerArtist per artist.
-        var artistCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var pool         = new List<ScoredAlbum>(poolSize);
+        // Step 2 & 3: Selection
+        var finalSelection = new List<ScoredAlbum>(count);
+        var usedArtists = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        foreach (var (album, _) in scored)
+        // Special Rule: If exactly 3 albums are requested and user chose "Past",
+        // force one album from each specific era: <1985, 1985-1999, 2000-2009.
+        if (isPast && count == 3)
         {
-            if (pool.Count >= poolSize) break;
+            ScoredAlbum? PickFromBucket(Func<ScoredAlbum, bool> predicate)
+            {
+                // To avoid always picking boundary years (e.g., exactly 1985 or 2000), 
+                // we sort candidates in this bucket purely by Energy and Familiarity, 
+                // completely ignoring the Time distance inside the bucket.
+                var candidates = _dataService.ScoredAlbums
+                    .Where(a => excludeMbids == null || !excludeMbids.Contains(a.AlbumMbid))
+                    .Where(a => predicate(a) && !usedArtists.Contains(a.ArtistName ?? string.Empty))
+                    .Select(a =>
+                    {
+                        var dE = a.EnergyScore - request.Energy;
+                        var dF = a.FamiliarityScore - request.Familiarity;
+                        var dist = Math.Sqrt(
+                            ScoringService.WeightEnergy * dE * dE +
+                            ScoringService.WeightFamiliarity * dF * dF);
+                        var jitter = Random.Shared.NextDouble() * JitterFactor;
+                        return (Album: a, Distance: (1 - JitterFactor) * dist + jitter);
+                    })
+                    .OrderBy(x => x.Distance)
+                    .Take(PoolFactor * 2) // Take top 20 best-matching by Energy/Familiarity
+                    .ToList();
 
-            var artistKey = album.ArtistName ?? string.Empty;
-            artistCounts.TryGetValue(artistKey, out var existing);
-            if (existing >= MaxAlbumsPerArtist) continue;
+                if (candidates.Count == 0) return null;
+                
+                var picked = candidates[Random.Shared.Next(candidates.Count)].Album;
+                usedArtists.Add(picked.ArtistName ?? string.Empty);
+                return picked;
+            }
 
-            artistCounts[artistKey] = existing + 1;
-            pool.Add(album);
+            var pre1985 = PickFromBucket(a => a.Year < 1985);
+            var midEra  = PickFromBucket(a => a.Year >= 1985 && a.Year < 2000);
+            var lateEra = PickFromBucket(a => a.Year >= 2000 && a.Year < 2010);
+
+            if (pre1985 != null) finalSelection.Add(pre1985);
+            if (midEra != null)  finalSelection.Add(midEra);
+            if (lateEra != null) finalSelection.Add(lateEra);
         }
 
-        // Step 3: Randomly sample `count` from the diverse pool.
-        return pool
-            .OrderBy(_ => Random.Shared.Next())
-            .Take(count)
-            .Select(AlbumMapper.ToAlbumDto)
-            .ToList();
+        // Fill remaining slots using generic logic (used for "Now", "Timeless", or if buckets failed)
+        if (finalSelection.Count < count)
+        {
+            var pool = new List<ScoredAlbum>(poolSize);
+            
+            foreach (var (album, _) in scored)
+            {
+                if (pool.Count >= poolSize) break;
+                
+                var artistKey = album.ArtistName ?? string.Empty;
+                if (usedArtists.Contains(artistKey)) continue;
+
+                usedArtists.Add(artistKey);
+                pool.Add(album);
+            }
+
+            foreach (var candidate in pool.OrderBy(_ => Random.Shared.Next()))
+            {
+                if (finalSelection.Count >= count) break;
+                
+                if (finalSelection.Any(selected => Math.Abs(selected.Year - candidate.Year) < MinYearGap))
+                    continue;
+
+                finalSelection.Add(candidate);
+            }
+
+            // Fallback: If strict MinYearGap filtering didn't yield enough, fill ignoring gap
+            if (finalSelection.Count < count)
+            {
+                var needed = count - finalSelection.Count;
+                var fill = pool.Except(finalSelection).Take(needed);
+                finalSelection.AddRange(fill);
+            }
+        }
+
+        // Optional: Shuffle so the order presented on screen isn't always oldest to newest
+        finalSelection = finalSelection.OrderBy(_ => Random.Shared.Next()).ToList();
+
+        return finalSelection.Select(AlbumMapper.ToAlbumDto).ToList();
     }
 }

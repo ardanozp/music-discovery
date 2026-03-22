@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
 using RecommendationApi.Models;
 using RecommendationApi.Services;
@@ -20,11 +21,13 @@ public class SessionsController : ControllerBase
 
     private readonly SessionStore _store;
     private readonly AnonymousUserStore _anonStore;
+    private readonly bool _bypassDailyLimit;
 
-    public SessionsController(SessionStore store, AnonymousUserStore anonStore)
+    public SessionsController(SessionStore store, AnonymousUserStore anonStore, IConfiguration configuration)
     {
-        _store     = store;
-        _anonStore = anonStore;
+        _store            = store;
+        _anonStore        = anonStore;
+        _bypassDailyLimit = configuration.GetValue<bool>("BypassDailyLimit");
     }
 
     /// <summary>
@@ -79,7 +82,8 @@ public class SessionsController : ControllerBase
         }
 
         // Enforce atomically to avoid race-condition bypass.
-        if (!_anonStore.TryConsumeDailyQuota(anonymousId))
+        // In development, BypassDailyLimit=true skips the quota so testing is unrestricted.
+        if (!_bypassDailyLimit && !_anonStore.TryConsumeDailyQuota(anonymousId))
         {
             return StatusCode(429, new ProblemDetails
             {

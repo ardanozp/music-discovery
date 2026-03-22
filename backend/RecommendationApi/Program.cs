@@ -124,6 +124,11 @@ builder.Services.AddRateLimiter(options =>
 
     options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
     {
+        if (builder.Configuration.GetValue<bool>("BypassDailyLimit"))
+        {
+            return RateLimitPartition.GetNoLimiter<string>("bypass");
+        }
+
         var partitionKey = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
         return RateLimitPartition.GetSlidingWindowLimiter(partitionKey, _ => new SlidingWindowRateLimiterOptions
@@ -139,6 +144,11 @@ builder.Services.AddRateLimiter(options =>
     // 2 & 3. Yalnızca IP bazlı çalışan özel FixedWindow policy'si
     options.AddPolicy("IpBasedSessionPolicy", context =>
     {
+        if (builder.Configuration.GetValue<bool>("BypassDailyLimit"))
+        {
+            return RateLimitPartition.GetNoLimiter<string>("bypass");
+        }
+
         var partitionKey = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
 
         return RateLimitPartition.GetFixedWindowLimiter(partitionKey, _ => new FixedWindowRateLimiterOptions

@@ -46,8 +46,10 @@
             <p class="album-year">released {{ currentAlbum.year }}</p>
         </div>
 
-        <a [href]="currentAlbum.wikipediaUrl" target="_blank" rel="noopener noreferrer" class="wiki-link">view on
-            wikipedia</a>
+        <div class="action-links" [@fadeTransition]="currentAlbumIndex">
+            <a [href]="spotifyUrl" target="_blank" rel="noopener noreferrer" class="spotify-link">listen on spotify</a>
+            <a [href]="currentAlbum.wikipediaUrl" target="_blank" rel="noopener noreferrer" class="wiki-link">view on wikipedia</a>
+        </div>
 
         <div class="next-button-container">
             <span class="album-indicator">{{ currentAlbumIndex + 1 }} / {{ albums.length }}</span>

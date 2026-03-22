@@ -5,6 +5,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { RecommendationService, SessionResponse } from '../services/recommendation.service';
 import { Album } from '../models/album.model';
 import { generateScore } from '../utils/score-mapper.util';
+import { environment } from '../../environments/environment';
 
 type Step = 'energy' | 'familiarity' | 'time' | 'loading' | 'album' | 'limited' | 'dailyLocked';
 type ErrorState = 'network' | 'server' | 'unknown';
@@ -19,6 +20,12 @@ type ErrorState = 'network' | 'server' | 'unknown';
             transition('* => *', [
                 style({ opacity: 0, transform: 'translateX(30px)' }),
                 animate('500ms ease-out', style({ opacity: 1, transform: 'translateX(0)' }))
+            ])
+        ]),
+        trigger('fadeTransition', [
+            transition('* => *', [
+                style({ opacity: 0 }),
+                animate('800ms 300ms ease-out', style({ opacity: 1 }))
             ])
         ])
     ]
@@ -44,6 +51,12 @@ export class AlbumScreenComponent implements OnInit {
     constructor(private recommendationService: RecommendationService) { }
 
     ngOnInit(): void {
+        if (environment.bypassDailyLimit) {
+            // Dev mode: clear any locked daily-limit state so testing is unrestricted.
+            this.clearAllDailyLimitKeys();
+            return;
+        }
+
         const saved = this.getDailyLimitState();
         if (saved?.locked && saved.albums?.length) {
             this.dailyLockedAlbums = saved.albums;
@@ -55,6 +68,12 @@ export class AlbumScreenComponent implements OnInit {
 
     get currentAlbum(): Album | null {
         return this.albums.length ? this.albums[this.currentAlbumIndex] : null;
+    }
+
+    get spotifyUrl(): string {
+        if (!this.currentAlbum) return '';
+        const query = encodeURIComponent(`${this.currentAlbum.artist} ${this.currentAlbum.title}`);
+        return `https://open.spotify.com/search/${query}/albums`;
     }
 
     // ── Quiz actions ──────────────────────────────────────────────────────────
@@ -224,6 +243,12 @@ export class AlbumScreenComponent implements OnInit {
         const mm = String(now.getMonth() + 1).padStart(2, '0');
         const dd = String(now.getDate()).padStart(2, '0');
         return `music_daily_limit:${anonId}:${yyyy}-${mm}-${dd}`;
+    }
+
+    private clearAllDailyLimitKeys(): void {
+        const prefix = 'music_daily_limit:';
+        const keysToRemove = Object.keys(localStorage).filter(k => k.startsWith(prefix));
+        keysToRemove.forEach(k => localStorage.removeItem(k));
     }
 
     trackByAlbumId(_: number, album: Album): string {
