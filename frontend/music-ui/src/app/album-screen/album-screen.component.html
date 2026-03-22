@@ -48,7 +48,8 @@
 
         <div class="action-links" [@fadeTransition]="currentAlbumIndex">
             <a [href]="spotifyUrl" target="_blank" rel="noopener noreferrer" class="spotify-link">listen on spotify</a>
-            <a [href]="currentAlbum.wikipediaUrl" target="_blank" rel="noopener noreferrer" class="wiki-link">view on wikipedia</a>
+            <a [href]="currentAlbum.wikipediaUrl" target="_blank" rel="noopener noreferrer" class="wiki-link">view on
+                wikipedia</a>
         </div>
 
         <div class="next-button-container">
@@ -80,8 +81,10 @@
                 <div class="album-image-wrapper">
                     <img [src]="album.coverUrl" [alt]="album.title">
                     <div class="hover-overlay">
-                        <a [href]="getAlbumSpotifyUrl(album)" target="_blank" rel="noopener noreferrer" class="overlay-link spotify">spotıfy</a>
-                        <a [href]="album.wikipediaUrl" target="_blank" rel="noopener noreferrer" class="overlay-link wiki">wıkıpedıa</a>
+                        <a [href]="getAlbumSpotifyUrl(album)" target="_blank" rel="noopener noreferrer"
+                            class="overlay-link spotify">spotify</a>
+                        <a [href]="album.wikipediaUrl" target="_blank" rel="noopener noreferrer"
+                            class="overlay-link wiki">wikipedia</a>
                     </div>
                 </div>
                 <p>{{ album.title }}</p>
