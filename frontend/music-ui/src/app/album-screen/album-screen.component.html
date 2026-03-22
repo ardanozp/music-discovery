@@ -77,7 +77,13 @@
         <h1 class="daily-locked-title">you've reached your discovery limit today, come back tomorrow</h1>
         <div class="daily-locked-albums">
             <div class="daily-locked-album" *ngFor="let album of dailyLockedAlbums; trackBy: trackByAlbumId">
-                <img [src]="album.coverUrl" [alt]="album.title">
+                <div class="album-image-wrapper">
+                    <img [src]="album.coverUrl" [alt]="album.title">
+                    <div class="hover-overlay">
+                        <a [href]="getAlbumSpotifyUrl(album)" target="_blank" rel="noopener noreferrer" class="overlay-link spotify">spotıfy</a>
+                        <a [href]="album.wikipediaUrl" target="_blank" rel="noopener noreferrer" class="overlay-link wiki">wıkıpedıa</a>
+                    </div>
+                </div>
                 <p>{{ album.title }}</p>
             </div>
         </div>
