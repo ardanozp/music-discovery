@@ -77,7 +77,7 @@ export class AlbumScreenComponent implements OnInit {
 
     getAlbumSpotifyUrl(album: Album): string {
         const query = encodeURIComponent(`${album.artist} ${album.title}`);
-        return `https://open.spotify.com/search/${query}/albums`;
+        return `https://open.spotify.com/search/${query}`;
     }
 
     // ── Quiz actions ──────────────────────────────────────────────────────────

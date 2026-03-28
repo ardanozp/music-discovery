@@ -7,7 +7,7 @@
 /* Global Container */
 .album-container {
     min-height: 100vh;
-    max-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -17,7 +17,7 @@
     padding: 2rem;
     box-sizing: border-box;
     text-transform: lowercase;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 /* ========================================
@@ -100,7 +100,6 @@
     color: #000000;
     transform: translateY(-4px);
     box-shadow: 0 4px 0 rgba(255, 255, 255, 0.5);
-    /* Hard shadow */
 }
 
 .mood-buttons button:active {
@@ -115,12 +114,12 @@
 .album-card {
     width: 100%;
     max-width: 600px;
-    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    padding: 2rem 1.5rem 8rem;
+    justify-content: flex-start;
+    padding: 2rem 1.5rem;
+    padding-bottom: 10rem;
     box-sizing: border-box;
     position: relative;
     background-color: #000000;
@@ -168,6 +167,7 @@
     max-width: 500px;
     text-transform: lowercase;
     animation: slideInRight 0.5s ease-out 0.2s both;
+    word-break: break-word;
 }
 
 /* Album Artist */
@@ -179,6 +179,7 @@
     text-align: center;
     text-transform: lowercase;
     animation: fadeInUp 0.4s ease-out 0.3s both;
+    word-break: break-word;
 }
 
 /* Album Year */
@@ -191,10 +192,39 @@
     animation: fadeInUp 0.4s ease-out 0.4s both;
 }
 
-/* Next Button - Bottom center, prominent */
+/* Action Links Container (Spotify + Wikipedia) — IN FLOW, not fixed */
+.action-links {
+    display: flex;
+    gap: 2.5rem;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    flex-shrink: 0;
+}
+
+.wiki-link, .spotify-link {
+    text-decoration: none;
+    color: #666666;
+    font-size: 1.125rem;
+    padding: 0.5rem 0;
+    transition: color 0.3s ease;
+    text-transform: lowercase;
+    white-space: nowrap;
+}
+
+.wiki-link:hover {
+    color: #ffffff;
+}
+
+.spotify-link:hover {
+    color: #1db954;
+}
+
+/* Next Button — Fixed at bottom center */
 .next-button {
     position: fixed;
     bottom: 3rem;
+    bottom: calc(3rem + env(safe-area-inset-bottom, 0px));
     left: 50%;
     transform: translateX(-50%);
     background: transparent;
@@ -230,12 +260,20 @@
     transform: translateX(5px);
 }
 
-/* Restart Button - Top right corner */
-.restart-button {
+/* Album Indicator — Above the next button */
+.album-indicator {
+    display: none;
+}
+
+/* Restart Button */
+.restart-wrapper {
     position: fixed;
     top: 1.5rem;
-    right: 64.5rem;
+    right: 1.5rem;
     z-index: 20;
+}
+
+.restart-button {
     background: transparent;
     border: none;
     color: #444444;
@@ -253,33 +291,27 @@
     color: #ffffff;
 }
 
-/* Action Links Container (Spotify + Wikipedia) */
-.action-links {
-    position: fixed;
-    bottom: 9rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 2.5rem;
-    z-index: 15;
+.restart-button.disabled,
+.restart-button:disabled {
+    color: #333333;
+    cursor: not-allowed;
 }
 
-.wiki-link, .spotify-link {
-    text-decoration: none;
-    color: #666666;
-    font-size: 1.125rem;
-    padding: 0.5rem 0;
-    transition: color 0.3s ease;
-    text-transform: lowercase;
+.restart-wrapper[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 8px;
+    padding: 8px 12px;
+    background-color: #111111;
+    color: #999999;
+    border: 1px solid #333333;
+    font-family: 'VT323', monospace;
+    font-size: 1rem;
     white-space: nowrap;
-}
-
-.wiki-link:hover {
-    color: #ffffff;
-}
-
-.spotify-link:hover {
-    color: #1db954;
+    z-index: 30;
+    text-transform: lowercase;
 }
 
 /* ========================================
@@ -292,6 +324,7 @@
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+    min-height: 100dvh;
     animation: fadeIn 0.4s ease-in-out;
 }
 
@@ -351,22 +384,6 @@
     }
 }
 
-.restart-button {
-    background: transparent;
-    border: none;
-    color: #444444;
-    font-family: 'VT323', monospace;
-    font-size: 0.9rem;
-    padding: 0.5rem;
-    cursor: pointer;
-    transition: color 0.3s ease;
-    text-transform: lowercase;
-}
-
-.restart-button:hover {
-    color: #ffffff;
-}
-
 /* ========================================
    ANIMATIONS
    ======================================== */
@@ -423,73 +440,8 @@
 }
 
 /* ========================================
-   RESPONSIVE
+   DAILY LOCKED VIEW
    ======================================== */
-
-@media (max-width: 768px) {
-    .mood-section h3 {
-        font-size: 3rem;
-        margin-bottom: 3rem;
-    }
-
-    .mood-buttons button {
-        font-size: 1.5rem;
-        padding: 1rem 2rem;
-        min-width: 200px;
-    }
-
-    .album-title {
-        font-size: 3rem;
-    }
-
-    .album-artist {
-        font-size: 2rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .mood-section h3 {
-        font-size: 2.5rem;
-    }
-
-    .album-title {
-        font-size: 2.5rem;
-    }
-
-    .album-card {
-        padding: 2rem 1rem 4rem;
-    }
-}
-
-.restart-wrapper {
-    position: fixed;
-    top: 1.5rem;
-    right: 1.5rem;
-    z-index: 20;
-}
-
-.restart-button.disabled,
-.restart-button:disabled {
-    color: #333333;
-    cursor: not-allowed;
-}
-
-.restart-wrapper[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 8px;
-    padding: 8px 12px;
-    background-color: #111111;
-    color: #999999;
-    border: 1px solid #333333;
-    font-family: 'VT323', monospace;
-    font-size: 1rem;
-    white-space: nowrap;
-    z-index: 30;
-    text-transform: lowercase;
-}
 
 .daily-locked-view {
     width: 100%;
@@ -577,4 +529,158 @@
     color: #cccccc;
     font-size: 0.95rem;
     line-height: 1.2;
+}
+
+/* ========================================
+   RESPONSIVE — TABLET
+   ======================================== */
+
+@media (max-width: 768px) {
+    .mood-section h3 {
+        font-size: 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .mood-buttons button {
+        font-size: 1.5rem;
+        padding: 1rem 2rem;
+        min-width: 200px;
+    }
+
+    .album-title {
+        font-size: 3rem;
+    }
+
+    .album-artist {
+        font-size: 2rem;
+    }
+}
+
+/* ========================================
+   RESPONSIVE — MOBILE
+   ======================================== */
+
+@media (max-width: 480px) {
+    .album-container {
+        padding: 1rem;
+        align-items: flex-start;
+    }
+
+    .mood-section h3 {
+        font-size: 2.2rem;
+        margin-bottom: 2rem;
+    }
+
+    .mood-buttons button {
+        font-size: 1.3rem;
+        padding: 0.8rem 1.5rem;
+        min-width: 180px;
+    }
+
+    .album-card {
+        padding: 1.5rem 1rem;
+        padding-bottom: 11rem;
+        justify-content: flex-start;
+    }
+
+    .album-cover {
+        max-width: 280px;
+        margin-bottom: 1.5rem;
+    }
+
+    .album-title {
+        font-size: 2rem;
+    }
+
+    .album-artist {
+        font-size: 1.5rem;
+    }
+
+    .album-year {
+        margin-bottom: 1.5rem;
+    }
+
+    .action-links {
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .wiki-link, .spotify-link {
+        font-size: 1.1rem;
+        padding: 0.6rem 1rem;
+        border: 1px solid #333333;
+        display: block;
+        text-align: center;
+        min-width: 180px;
+    }
+
+    .spotify-link:active {
+        color: #1db954;
+        border-color: #1db954;
+    }
+
+    .wiki-link:active {
+        color: #ffffff;
+        border-color: #ffffff;
+    }
+
+    .next-button {
+        width: 64px;
+        height: 64px;
+        bottom: 2rem;
+        bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    .next-arrow {
+        font-size: 2rem;
+    }
+
+    .restart-wrapper {
+        top: 1rem;
+        right: 1rem;
+    }
+
+    .restart-button {
+        font-size: 1rem;
+    }
+
+    /* Daily locked view mobile */
+    .daily-locked-album {
+        min-width: 130px;
+        max-width: 130px;
+    }
+
+    .album-image-wrapper {
+        width: 130px;
+        height: 130px;
+    }
+
+    /* Show overlay always on touch devices */
+    .hover-overlay {
+        opacity: 1;
+        background: rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* ========================================
+   RESPONSIVE — VERY SMALL SCREENS
+   ======================================== */
+
+@media (max-width: 360px) {
+    .album-cover {
+        max-width: 220px;
+    }
+
+    .album-title {
+        font-size: 1.8rem;
+    }
+
+    .album-artist {
+        font-size: 1.3rem;
+    }
+
+    .mood-section h3 {
+        font-size: 1.8rem;
+    }
 }
