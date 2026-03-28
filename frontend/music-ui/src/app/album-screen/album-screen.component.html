@@ -39,6 +39,14 @@
 
     <!-- EKRAN 5: Albüm -->
     <div class="album-card" *ngIf="currentStep === 'album' && currentAlbum">
+        <div class="restart-wrapper"
+            [attr.data-tooltip]="restartsRemaining === 0 ? 'you have reached your discovery limit today, come back tomorrow' : null">
+            <button type="button" (click)="startOver()" class="restart-button" [disabled]="restartsRemaining === 0"
+                [class.disabled]="restartsRemaining === 0">
+                start over <span *ngIf="restartsRemaining > 0">({{ restartsRemaining }})</span>
+            </button>
+        </div>
+
         <div class="album-content" [@albumTransition]="currentAlbumIndex">
             <img [src]="currentAlbum.coverUrl" [alt]="currentAlbum.title" class="album-cover">
             <h1 class="album-title" [class.loading-pulse]="isLoadingNext">{{ currentAlbum.title }}</h1>
@@ -56,14 +64,6 @@
             <span class="album-indicator">{{ currentAlbumIndex + 1 }} / {{ albums.length }}</span>
             <button type="button" (click)="nextAlbum()" class="next-button" aria-label="next album">
                 <span class="next-arrow">→</span>
-            </button>
-        </div>
-
-        <div class="restart-wrapper"
-            [attr.data-tooltip]="restartsRemaining === 0 ? 'you have reached your discovery limit today, come back tomorrow' : null">
-            <button type="button" (click)="startOver()" class="restart-button" [disabled]="restartsRemaining === 0"
-                [class.disabled]="restartsRemaining === 0">
-                start over <span *ngIf="restartsRemaining > 0">({{ restartsRemaining }})</span>
             </button>
         </div>
     </div>

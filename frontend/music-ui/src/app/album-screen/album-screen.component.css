@@ -114,6 +114,8 @@
 .album-card {
     width: 100%;
     max-width: 600px;
+    min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -125,6 +127,12 @@
     background-color: #000000;
     animation: albumEntrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
     text-align: center;
+}
+
+/* Push album content to vertical center via auto margins */
+.album-content {
+    margin-top: auto;
+    margin-bottom: 0;
 }
 
 @keyframes albumEntrance {
@@ -198,8 +206,10 @@
     gap: 2.5rem;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1.5rem;
+    margin-top: 0;
+    margin-bottom: auto;
     flex-shrink: 0;
+    padding: 1.5rem 0;
 }
 
 .wiki-link, .spotify-link {
@@ -267,9 +277,8 @@
 
 /* Restart Button */
 .restart-wrapper {
-    position: fixed;
-    top: 1.5rem;
-    right: 1.5rem;
+    align-self: flex-end;
+    margin-bottom: 1rem;
     z-index: 20;
 }
 
@@ -563,7 +572,6 @@
 @media (max-width: 480px) {
     .album-container {
         padding: 1rem;
-        align-items: flex-start;
     }
 
     .mood-section h3 {
@@ -580,11 +588,10 @@
     .album-card {
         padding: 1.5rem 1rem;
         padding-bottom: 11rem;
-        justify-content: flex-start;
     }
 
     .album-cover {
-        max-width: 280px;
+        max-width: min(280px, 65vw);
         margin-bottom: 1.5rem;
     }
 
@@ -634,11 +641,6 @@
 
     .next-arrow {
         font-size: 2rem;
-    }
-
-    .restart-wrapper {
-        top: 1rem;
-        right: 1rem;
     }
 
     .restart-button {
