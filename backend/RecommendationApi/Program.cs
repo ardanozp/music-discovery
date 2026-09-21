@@ -167,18 +167,26 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardLimit = 1;
 
     var knownProxyIps = builder.Configuration.GetSection("ReverseProxy:KnownProxies").Get<string[]>() ?? Array.Empty<string>();
-    foreach (var ipText in knownProxyIps)
+    if (knownProxyIps.Contains("*"))
     {
-        if (IPAddress.TryParse(ipText, out var ip))
-        {
-            options.KnownProxies.Add(ip);
-        }
+        options.KnownNetworks.Clear();
+        options.KnownProxies.Clear();
     }
-
-    if (builder.Environment.IsDevelopment() && options.KnownProxies.Count == 0)
+    else
     {
-        options.KnownProxies.Add(IPAddress.Loopback);
-        options.KnownProxies.Add(IPAddress.IPv6Loopback);
+        foreach (var ipText in knownProxyIps)
+        {
+            if (IPAddress.TryParse(ipText, out var ip))
+            {
+                options.KnownProxies.Add(ip);
+            }
+        }
+
+        if (builder.Environment.IsDevelopment() && options.KnownProxies.Count == 0)
+        {
+            options.KnownProxies.Add(IPAddress.Loopback);
+            options.KnownProxies.Add(IPAddress.IPv6Loopback);
+        }
     }
 });
 
@@ -228,7 +236,7 @@ app.Use(async (context, next) =>
     context.Response.Headers.TryAdd("X-Frame-Options", "DENY");
     context.Response.Headers.TryAdd("Referrer-Policy", "no-referrer");
     context.Response.Headers.TryAdd("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
-    context.Response.Headers.TryAdd("Content-Security-Policy", "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'");
+    context.Response.Headers.TryAdd("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src * data: blob:; connect-src 'self' https:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
     await next();
 });
 
@@ -240,6 +248,9 @@ app.UseRequestTimeouts();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.MapControllers();
 app.MapHealthChecks("/health", new()
 {
@@ -249,5 +260,7 @@ app.MapHealthChecks("/ready", new()
 {
     Predicate = check => check.Tags.Contains("ready")
 });
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
