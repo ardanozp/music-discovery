@@ -1,0 +1,11 @@
+**/.git
+**/.github
+**/.vscode
+**/.idea
+**/node_modules
+**/dist
+**/bin
+**/obj
+**/publish
+**/.DS_Store
+.env

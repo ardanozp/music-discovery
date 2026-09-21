@@ -1,0 +1,31 @@
+# ==============================================================================
+# Caddyfile - MoodAlbum Reverse Proxy Configuration
+# ==============================================================================
+# Domain Configuration:
+# - By default, this reads the {$DOMAIN} environment variable passed via docker-compose.
+# - You can replace {$DOMAIN:localhost} directly with your domain (e.g., moodalbum.com)
+#   or set DOMAIN=your-domain.com in a .env file next to docker-compose.yml.
+# - Caddy will automatically provision and renew Let's Encrypt TLS certificates
+#   for valid public domains pointing to this server.
+#
+# If testing locally or by raw IP without a domain:
+# Use: http://{$DOMAIN:localhost} or :80
+# ==============================================================================
+
+{$DOMAIN:localhost} {
+    # Enable Gzip and Zstandard response compression
+    encode gzip zstd
+
+    # Proxy all traffic to the MoodAlbum api container (port 80)
+    reverse_proxy api:80 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Access logs
+    log {
+        output stdout
+        format console
+    }
+}
