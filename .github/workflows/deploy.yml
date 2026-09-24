@@ -34,9 +34,22 @@ jobs:
             if [ ! -f .env ]; then
               cp .env.example .env
             fi
+
+            # Caddy must receive the public hostname to issue and serve TLS.
+            sed -i 's|^DOMAIN=.*|DOMAIN=moodalbum.com|' .env
+
+            # Oracle's security list permits web traffic. If UFW is enabled on
+            # the instance, allow the same ports at the host level as well.
+            if command -v ufw >/dev/null 2>&1 && ufw status | grep -q 'Status: active'; then
+              sudo ufw allow 80/tcp
+              sudo ufw allow 443/tcp
+            fi
             
             # Build and run the docker containers
             docker compose up -d --build
+
+            # Fail the deployment if the public reverse proxy did not start.
+            docker compose ps caddy
             
             # Clean up dangling images to save space on the micro instance
             docker image prune -f
