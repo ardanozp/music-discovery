@@ -29,3 +29,8 @@
         format console
     }
 }
+
+# Keep the www hostname functional and canonicalize traffic to the apex domain.
+www.{$DOMAIN:localhost} {
+    redir https://{$DOMAIN:localhost}{uri} permanent
+}
