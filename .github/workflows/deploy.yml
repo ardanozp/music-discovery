@@ -48,6 +48,10 @@ jobs:
             # Build and run the docker containers
             docker compose up -d --build
 
+            # Caddyfile is mounted from the repository; recreate Caddy so it
+            # reloads any domain, TLS, or routing changes in that file.
+            docker compose up -d --force-recreate caddy
+
             # Fail the deployment if the public reverse proxy did not start.
             docker compose ps caddy
             docker compose logs --tail=100 caddy
