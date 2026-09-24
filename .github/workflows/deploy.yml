@@ -50,6 +50,7 @@ jobs:
 
             # Fail the deployment if the public reverse proxy did not start.
             docker compose ps caddy
+            docker compose logs --tail=100 caddy
             
             # Clean up dangling images to save space on the micro instance
             docker image prune -f
